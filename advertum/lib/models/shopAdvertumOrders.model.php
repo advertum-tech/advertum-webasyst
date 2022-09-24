@@ -6,27 +6,32 @@ class shopAdvertumOrdersModel extends waModel
     const ORDER_STATUS_PAID = 'paid';
     const ORDER_STATUS_CANCELED = 'canceled';
 
-    protected $table = 'shop_advertum_orders';
-    protected $id = 'uid';
+    //    const PAGE_SIZE = 50; // prod val
+    const PAGE_SIZE = 5; // test val
 
-    public function createOrGet($uid, $orderId, $price = null)
+    protected $table = 'shop_advertum_orders';
+
+    public function createOrGet($uid, $order)
     {
         $advertumOrder = $this->getByField([
             'uid' => $uid,
-            'order_id' => $orderId,
+            'order_id' => $order['id'],
         ]);
         if (!$advertumOrder) {
             $this->insert(array(
                 'uid' => $uid,
-                'order_id' => $orderId,
+                'order_id' => $order['id'],
                 'status' => self::ORDER_STATUS_CREATED,
-                'create_price' => $price,
-                'create_contact_id' => wa()->getUser()->getId(),
+                'create_price' => $order['total'],
                 'create_datetime' => date('Y-m-d H:i:s'),
+                'currency' => $order['currency'],
+                'shipping' => $order['shipping'],
+                'discount' => $order['discount'],
+                'contact_id' => wa()->getUser()->getId(),
             ));
             $advertumOrder = $this->getByField([
                 'uid' => $uid,
-                'order_id' => $orderId,
+                'order_id' => $order['id'],
             ]);
         }
         return $advertumOrder;

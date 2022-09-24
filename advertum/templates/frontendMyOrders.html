@@ -1,5 +1,196 @@
 <hr/>
-
 <h2>[`Advertum leads`]</h2>
 
-<div>{$test_var}</div>
+{if $error}
+    {$error}
+{else}
+
+<br/>
+<form action="">
+    <label>
+        <select name="status" style="padding: 5px 10px 6px;">
+            <option value="" {if !$params['status'] } selected {/if}>all</option>
+            <option value="created" {if $params['status'] == 'created' } selected {/if}>created</option>
+            <option value="paid" {if $params['status'] == 'paid' } selected {/if} >paid</option>
+            <option value="canceled" {if $params['status'] == 'canceled' } selected {/if} >canceled</option>
+        </select>
+    </label>
+    <label>
+        <input style="padding: 5px 10px 6px;" name="uid" placeholder="uid" value="{$params['uid']}">
+    </label>
+    <label>
+        <input style="padding: 5px 10px 6px;" name="order_id" placeholder="order id" value="{$params['order_id']}">
+    </label>
+    <button type="submit" value="">filter</button>
+</form>
+<div>{$foo}</div>
+<br/>
+<br/>
+<br/>
+<h3>[`Orders`]</h3>
+<table class="table">
+    {if $orders_pages_count > 0}
+    <tr>
+        <th class="align-left"></th>
+        <th class="align-left">[`uid`]</th>
+        <th class="align-left">[`order id`]</th>
+        <th class="align-left">[`status`]</th>
+        <th class="align-left">[`create price`]</th>
+        <th class="align-left">[`create datetime`]</th>
+        <th class="align-left">[`paid price`]</th>
+        <th class="align-left">[`paid datetime`]</th>
+        <th class="align-left">[`canceled price`]</th>
+        <th class="align-left">[`canceled datetime`]</th>
+        <th class="align-left">[`cashback %`]</th>
+        <th class="align-left">[`cashback`]</th>
+        <th class="align-left">[`currency`]</th>
+        <th class="align-left">[`shipping`]</th>
+        <th class="align-left">[`discount`]</th>
+        <th class="align-left">[`contact id`]</th>
+    </tr>
+    {/if}
+    {foreach $orders as $o}
+    <tr id="orders-{$o.id}">
+        <td>
+            {$o.id}
+        </td>
+        <td>
+            {$o.uid}
+        </td>
+        <td>
+            {$o.order_id}
+        </td>
+        <td>
+            {$o.status}
+        </td>
+        <td>
+            {$o.create_price|wa_format_number:false}
+        </td>
+        <td>
+            {$o.create_datetime|wa_date:'humandatetime'}
+        </td>
+        <td>
+            {if $o.paid_price}
+            {$o.paid_price|wa_format_number:false}
+            {/if}
+        </td>
+        <td>
+            {$o.paid_datetime|wa_date:'humandatetime'}
+        </td>
+        <td>
+            {if $o.canceled_price}
+            {$o.canceled_price|wa_format_number:false}
+            {/if}
+        </td>
+        <td>
+            {$o.canceled_datetime|wa_date:'humandatetime'}
+        </td>
+        <td>
+            {if $o.cashback_percentage}
+            {$o.cashback_percentage|wa_format_number:false}%
+            {/if}
+        </td>
+        <td>
+            {if $o.cashback}
+            {$o.cashback|wa_format_number:false}
+            {/if}
+        </td>
+        <td>
+            {$o.currency}
+        </td>
+        <td>
+            {$o.shipping|wa_format_number:false}
+        </td>
+        <td>
+            {$o.discount|wa_format_number:false}
+        </td>
+        <td>
+            {$o.contact_id}
+        </td>
+    </tr>
+    {foreachelse}
+    <tr class="no-border">
+        {if $params['status'] || $params['uid'] || $params['order_id']}
+            <td>[`You have no orders' history having such criteria.`]</td>
+        {else}
+            <td>[`You have no orders' history yet.`]</td>
+        {/if}
+    </tr>
+    {/foreach}
+    {if $orders_pages_count > 1}
+    <tfoot>
+    <tr>
+        <td colspan="16">
+            {$orders_page = $params['orders_page']}
+            {for $p = 1 to $orders_pages_count}
+                {$params['orders_page'] = $p}
+                {if $orders_page == $p}
+                    <span style="padding: 5px;">{$p}</span>
+                {else}
+                    <a style="padding: 5px;" href="?{http_build_query($params)}">{$p}</a>
+                {/if}
+            {/for}
+        </td>
+    </tr>
+    </tfoot>
+    {/if}
+</table>
+
+<br/>
+<br/>
+<br/>
+<h3>[`Visits`]</h3>
+<table class="table">
+    {if $visits_pages_count > 0}
+    <tr>
+        <th class="align-left"></th>
+        <th class="align-left">[`uid`]</th>
+        <th class="align-left">[`previous uid`]</th>
+        <th class="align-left"></th>
+    </tr>
+    {/if}
+    {foreach $visits as $v}
+    <tr id="visits-{$v.id}">
+        <td class="nowrap">
+            {$v.id}
+        </td>
+        <td>
+            {$v.uid}
+        </td>
+        <td>
+            {$v.old_uid}
+        </td>
+        <td>
+            {$v.create_datetime|wa_date:'humandatetime'}
+        </td>
+    </tr>
+    {foreachelse}
+    <tr class="no-border">
+        {if $params['uid']}
+            <td>[`You have no visits' history having such criteria.`]</td>
+        {else}
+            <td>[`You have no visits' history yet.`]</td>
+        {/if}
+    </tr>
+    {/foreach}
+    {if $visits_pages_count > 1}
+    <tfoot>
+    <tr>
+        <td colspan="4">
+        {$visits_page = $params['visits_page']}
+        {for $p = 1 to $visits_pages_count}
+            {$params['visits_page'] = $p}
+            {if $visits_page == $p}
+                <span style="padding: 5px;">{$p}</span>
+            {else}
+                <a style="padding: 5px;" href="?{http_build_query($params)}">{$p}</a>
+            {/if}
+        {/for}
+        </td>
+    </tr>
+    </tfoot>
+    {/if}
+</table>
+{/if}
+
+
