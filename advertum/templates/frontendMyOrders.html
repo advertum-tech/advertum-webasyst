@@ -1,3 +1,73 @@
+<style>
+/* INNER TABLE */
+    table.statuses {
+        border-collapse: collapse;
+        margin: 0;
+        width: 100%;
+    }
+    table.statuses tr:first-child td {
+        border-top: 0;
+    }
+    table.statuses tr:last-child td {
+        border-bottom: 0;
+    }
+    table.statuses tr td:first-child,
+    table.statuses tr th:first-child {
+        border-left: 0;
+    }
+    table.statuses tr td:last-child,
+    table.statuses tr th:last-child {
+        border-right: 0;
+    }
+/* FILTER */
+    select.filter-select {
+        padding: 5px 10px 6px; width: 110px;
+    }
+    input.filter-input {
+        padding: 5px 10px 6px; width: 100px;
+    }
+    input.filter-date {
+        padding: 2px 5px 3px; width: 130px;
+    }
+
+/* STATUS BUTTON */
+    button.status-button {
+        padding: 0 2px 0 2px;
+        margin: 0 0 0 5px;
+        background-color: #cccccc;
+    }
+
+/* TOOLTIP */
+    /* Tooltip container */
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+        cursor: pointer;
+    }
+
+    /* Tooltip text */
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 300px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        padding: 5px 0;
+        border-radius: 6px;
+
+        /* Position the tooltip text - see examples below! */
+        position: absolute;
+        z-index: 1;
+        top: -5px;
+        left: 105%;
+    }
+
+    /* Show the tooltip text when you mouse over the tooltip container */
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+    }
+</style>
 <hr/>
 <h2>[`Advertum leads`]</h2>
 
@@ -7,20 +77,16 @@
 
 <br/>
 <form action="">
-    <label>
-        <select name="status" style="padding: 5px 10px 6px;">
-            <option value="" {if !$params['status'] } selected {/if}>all</option>
-            <option value="created" {if $params['status'] == 'created' } selected {/if}>created</option>
-            <option value="paid" {if $params['status'] == 'paid' } selected {/if} >paid</option>
-            <option value="canceled" {if $params['status'] == 'canceled' } selected {/if} >canceled</option>
-        </select>
-    </label>
-    <label>
-        <input style="padding: 5px 10px 6px;" name="uid" placeholder="uid" value="{$params['uid']}">
-    </label>
-    <label>
-        <input style="padding: 5px 10px 6px;" name="order_id" placeholder="order id" value="{$params['order_id']}">
-    </label>
+    <select class="filter-select" name="status">
+        <option value="" {if !$params['status'] } selected {/if}>all</option>
+        <option value="created" {if $params['status'] == 'created' } selected {/if}>created</option>
+        <option value="paid" {if $params['status'] == 'paid' } selected {/if} >paid</option>
+        <option value="canceled" {if $params['status'] == 'canceled' } selected {/if} >canceled</option>
+    </select>
+    <input class="filter-input" name="uid" placeholder="uid" value="{$params['uid']}">
+    <input class="filter-input" name="order_id" placeholder="order id" value="{$params['order_id']}">
+    <input class="filter-date" name="from" placeholder="from" value="{$params['from']}" type="date"> -
+    <input class="filter-date" name="to" placeholder="to" value="{$params['to']}" type="date">
     <button type="submit" value="">filter</button>
 </form>
 <div>{$foo}</div>
@@ -35,18 +101,13 @@
         <th class="align-left">[`uid`]</th>
         <th class="align-left">[`order id`]</th>
         <th class="align-left">[`status`]</th>
-        <th class="align-left">[`create price`]</th>
-        <th class="align-left">[`create datetime`]</th>
-        <th class="align-left">[`paid price`]</th>
-        <th class="align-left">[`paid datetime`]</th>
-        <th class="align-left">[`canceled price`]</th>
-        <th class="align-left">[`canceled datetime`]</th>
+        <th class="align-left">[`advertum status`]</th>
+        <th class="align-left">[`total`]</th>
+        <th class="align-left">[`shipping`]</th>
         <th class="align-left">[`cashback %`]</th>
         <th class="align-left">[`cashback`]</th>
         <th class="align-left">[`currency`]</th>
-        <th class="align-left">[`shipping`]</th>
-        <th class="align-left">[`discount`]</th>
-        <th class="align-left">[`contact id`]</th>
+        <th class="align-left"></th>
     </tr>
     {/if}
     {foreach $orders as $o}
@@ -60,52 +121,122 @@
         <td>
             {$o.order_id}
         </td>
-        <td>
-            {$o.status}
+        <td style="padding: 0;">
+            <table class="statuses">
+                <tr><td colspan="3"><strong>{$o.status}</strong></td></tr>
+                <tr><td>create</td><td>{$o.create_price|wa_format_number:false}</td><td>{$o.create_datetime|date_format:$dt_format}</td></tr>
+                <tr><td>paid</td><td>{$o.paid_price|wa_format_number:false}</td><td>{$o.paid_datetime|date_format:$dt_format}</td></tr>
+                <tr><td>cancel</td><td>{$o.canceled_price|wa_format_number:false}</td><td>{$o.canceled_datetime|date_format:$dt_format}</td></tr>
+            </table>
         </td>
-        <td>
-            {$o.create_price|wa_format_number:false}
-        </td>
-        <td>
-            {$o.create_datetime|wa_date:'humandatetime'}
+        <td style="padding: 0;">
+            <form action="">
+                <input type="hidden" name="id" value="{$o.id}" >
+                <input type="hidden" name="order_to_process_id" value="{$o.order_id}" >
+                <input type="hidden" name="status" value="{$params['status']}">
+                <input type="hidden" name="uid" value="{$params['uid']}">
+                <input type="hidden" name="order_id" value="{$params['order_id']}">
+                <input type="hidden" name="orders_page" value="{$params['orders_page']}">
+                <input type="hidden" name="visits_page" value="{$params['visits_page']}">
+                <input type="hidden" name="from" value="{$params['from']}">
+                <input type="hidden" name="to" value="{$params['to']}">
+                <table class="statuses">
+                    <tr>
+                        <td style="width: 50px">
+                            <span class="tooltip">pushed
+                                <span class="tooltiptext">Push has been sent to the Advertum API, so user sees the cashback, in pending or paid status</span>
+                            </span>
+                        </td>
+                        <td>
+                            {if $o.advertum_user_pushed_datetime}
+                                {$o.advertum_user_pushed_datetime|date_format:$dt_format}
+                                <button class="status-button" type="submit" name="action" value="unset_pushed">unset</button>
+                            {else}
+                                <button class="status-button" type="submit" name="action" value="set_pushed">set</button>
+                            {/if}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tooltip">accrued
+                                <span class="tooltiptext">Advertum user received the cashback as tokens</span>
+                            </span>
+                        </td>
+                        <td>
+                            {if $o.advertum_user_accrued_datetime}
+                                {$o.advertum_user_accrued_datetime|date_format:$dt_format}
+                                <button class="status-button" type="submit" name="action" value="unset_accrued">unset</button>
+                            {else}
+                                <button class="status-button" type="submit" name="action" value="set_accrued">set</button>
+                            {/if}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tooltip">invoiced
+                                <span class="tooltiptext">Advertum has been issued the invoice to the shop owner</span>
+                            </span>
+                        </td>
+                        <td>
+                            {if $o.shop_invoiced_datetime}
+                                {$o.shop_invoiced_datetime|date_format:$dt_format}
+                                <button class="status-button" type="submit" name="action" value="unset_invoiced">unset</button>
+                            {else}
+                                <button class="status-button" type="submit" name="action" value="set_invoiced">set</button>
+                            {/if}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="tooltip">paid
+                                <span class="tooltiptext">Shop owner has been paid the invoice to Advertum</span>
+                            </span>
+                        </td>
+                        <td>
+                            {if $o.advertum_paid_datetime}
+                                {$o.advertum_paid_datetime|date_format:$dt_format}
+                                <button class="status-button" type="submit" name="action" value="unset_paid">unset</button>
+                            {else}
+                                <button class="status-button" type="submit" name="action" value="set_paid">set</button>
+                            {/if}
+                        </td>
+                    </tr>
+                </table>
+            </form>
         </td>
         <td>
             {if $o.paid_price}
-            {$o.paid_price|wa_format_number:false}
+                <span class="tooltip">{$o.paid_price|wa_format_number:false}
+                    <span class="tooltiptext">{$o.items}</span>
+                </span>
             {/if}
         </td>
         <td>
-            {$o.paid_datetime|wa_date:'humandatetime'}
-        </td>
-        <td>
-            {if $o.canceled_price}
-            {$o.canceled_price|wa_format_number:false}
+            {if $o.shipping}
+                {$o.shipping|wa_format_number:false}
             {/if}
-        </td>
-        <td>
-            {$o.canceled_datetime|wa_date:'humandatetime'}
         </td>
         <td>
             {if $o.cashback_percentage}
-            {$o.cashback_percentage|wa_format_number:false}%
+                {$o.cashback_percentage|wa_format_number:false}%
             {/if}
         </td>
         <td>
             {if $o.cashback}
-            {$o.cashback|wa_format_number:false}
+                {$o.cashback|wa_format_number:false}
             {/if}
         </td>
         <td>
             {$o.currency}
         </td>
         <td>
-            {$o.shipping|wa_format_number:false}
-        </td>
-        <td>
-            {$o.discount|wa_format_number:false}
-        </td>
-        <td>
-            {$o.contact_id}
+            {foreach from=$o key=arrayIndex item=trecord}
+            {$arrayIndex}: {$trecord}
+            <br>
+            {/foreach}
+
+            <div>id_debug: {$id_debug}</div>
+            <div>order_to_process_id_debug: {$order_to_process_id_debug}</div>
         </td>
     </tr>
     {foreachelse}
@@ -117,23 +248,38 @@
         {/if}
     </tr>
     {/foreach}
-    {if $orders_pages_count > 1}
     <tfoot>
     <tr>
-        <td colspan="16">
-            {$orders_page = $params['orders_page']}
-            {for $p = 1 to $orders_pages_count}
-                {$params['orders_page'] = $p}
-                {if $orders_page == $p}
-                    <span style="padding: 5px;">{$p}</span>
-                {else}
-                    <a style="padding: 5px;" href="?{http_build_query($params)}">{$p}</a>
-                {/if}
-            {/for}
+        <td colspan="5">
+
+            {if $orders_pages_count > 1}
+                {$orders_page = $params['orders_page']}
+                {for $p = 1 to $orders_pages_count}
+                    {$params_ = $params}
+                    {$params_['orders_page'] = $p}
+                    {if $orders_page == $p}
+                        <span style="padding: 5px;">{$p}</span>
+                    {else}
+                        <a style="padding: 5px;" href="?{http_build_query($params_)}">{$p}</a>
+                    {/if}
+                {/for}
+            {/if}
+            <span style="float: right">total:</span>
+        </td>
+        <td>
+            {$paid_total|wa_format_number:false}
+        </td>
+        <td>
+        </td>
+        <td>
+        </td>
+        <td>
+            {$cashback_total|wa_format_number:false}
+        </td>
+        <td>
         </td>
     </tr>
     </tfoot>
-    {/if}
 </table>
 
 <br/>
@@ -161,7 +307,7 @@
             {$v.old_uid}
         </td>
         <td>
-            {$v.create_datetime|wa_date:'humandatetime'}
+            {$v.create_datetime|date_format:$dt_format}
         </td>
     </tr>
     {foreachelse}
