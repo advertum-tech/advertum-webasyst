@@ -81,7 +81,6 @@ class shopAdvertumPlugin extends shopPlugin
 
         $action = waRequest::get('action');
         $order_to_process_id = waRequest::get('order_to_process_id');
-        waLog::log('$action ' . $action);
 
         try {
 
